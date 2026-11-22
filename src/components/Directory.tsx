@@ -69,7 +69,7 @@ export function Directory({ lang, data, loading, error, onRetry }: Props) {
         return null;
       })
       .filter((c): c is CategoryWithContacts => c !== null);
-  }, [data, search, activeCategory, lang]);
+  }, [visibleData, search, activeCategory, lang]);
 
   const filteredCount = filteredData.reduce((sum, c) => sum + c.contacts.length, 0);
 
@@ -139,9 +139,9 @@ export function Directory({ lang, data, loading, error, onRetry }: Props) {
 
       {/* Steps guide */}
       <section className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in">
-        <StepCard num="1" icon={<Landmark className="w-5 h-5" />} title={t(lang, 'step1')} text={t(lang, 'step1Text')} />
-        <StepCard num="2" icon={<ShieldCheck className="w-5 h-5" />} title={t(lang, 'step2')} text={t(lang, 'step2Text')} />
-        <StepCard num="3" icon={<Lock className="w-5 h-5" />} title={t(lang, 'step3')} text={t(lang, 'step3Text')} />
+        <StepCard icon={<Landmark className="w-5 h-5" />} title={t(lang, 'step1')} text={t(lang, 'step1Text')} />
+        <StepCard icon={<ShieldCheck className="w-5 h-5" />} title={t(lang, 'step2')} text={t(lang, 'step2Text')} />
+        <StepCard icon={<Lock className="w-5 h-5" />} title={t(lang, 'step3')} text={t(lang, 'step3Text')} />
       </section>
 
       {/* Info cards: gaming alert + gaming self-exclusion + financial products */}
@@ -318,12 +318,10 @@ function Stat({ icon, value, label }: { icon: React.ReactNode; value: number; la
 }
 
 function StepCard({
-  num,
   icon,
   title,
   text,
 }: {
-  num: string;
   icon: React.ReactNode;
   title: string;
   text: string;
@@ -401,7 +399,6 @@ function ContactRow({ contact, lang }: { contact: Contact; lang: LangCode }) {
           <ContactChip
             icon={<Mail className="w-3.5 h-3.5" />}
             value={contact.email}
-            type="email"
             copied={copied === 'email'}
             onCopy={() => copyToClipboard(contact.email!, 'email')}
             lang={lang}
@@ -412,7 +409,6 @@ function ContactRow({ contact, lang }: { contact: Contact; lang: LangCode }) {
           <ContactChip
             icon={<Phone className="w-3.5 h-3.5" />}
             value={contact.phone}
-            type="phone"
             copied={copied === 'phone'}
             onCopy={() => copyToClipboard(contact.phone!, 'phone')}
             lang={lang}
@@ -437,7 +433,6 @@ function ContactRow({ contact, lang }: { contact: Contact; lang: LangCode }) {
 function ContactChip({
   icon,
   value,
-  type,
   copied,
   onCopy,
   lang,
@@ -445,7 +440,6 @@ function ContactChip({
 }: {
   icon: React.ReactNode;
   value: string;
-  type: string;
   copied: boolean;
   onCopy: () => void;
   lang: LangCode;

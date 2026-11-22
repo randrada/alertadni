@@ -3,8 +3,8 @@ import { Header } from '@/components/Header';
 import { Directory } from '@/components/Directory';
 import { AdminLogin } from '@/components/AdminLogin';
 import { AdminPanel } from '@/components/AdminPanel';
-import { supabase } from '@/lib/supabase';
-import type { LangCode, CategoryWithContacts } from '@/lib/types';
+import { publicSupabase, supabase } from '@/lib/supabase';
+import type { Category, CategoryWithContacts, Contact, LangCode } from '@/lib/types';
 
 type View = 'directory' | 'admin-login' | 'admin-panel';
 
@@ -29,39 +29,50 @@ function App() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      (async () => {
-        setIsAdmin(!!session);
-        if (!session && view === 'admin-panel') {
-          setView('directory');
-        }
-      })();
+      setIsAdmin(!!session);
+      if (!session) {
+        setView((currentView) => currentView === 'admin-panel' ? 'directory' : currentView);
+      }
     });
 
     return () => listener.subscription.unsubscribe();
-  }, [view]);
+  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(false);
-    try {
-      const [{ data: cats, error: catError }, { data: cons, error: conError }] = await Promise.all([
-        supabase.from('categories').select('*').order('sort_order'),
-        supabase.from('contacts').select('*').order('sort_order'),
-      ]);
+    let lastError: unknown;
 
-      if (catError || conError) throw new Error('Failed to load');
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const [{ data: cats, error: catError }, { data: cons, error: conError }] = await Promise.all([
+          publicSupabase.from('categories').select('*').order('sort_order'),
+          publicSupabase.from('contacts').select('*').order('sort_order'),
+        ]);
 
-      const grouped: CategoryWithContacts[] = (cats || []).map((cat: any) => ({
-        ...cat,
-        contacts: (cons || []).filter((c: any) => c.category_id === cat.id),
-      }));
+        if (catError || conError) throw catError || conError;
 
-      setData(grouped);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
+        const categories = (cats || []) as Category[];
+        const contacts = (cons || []) as Contact[];
+        const grouped: CategoryWithContacts[] = categories.map((cat) => ({
+          ...cat,
+          contacts: contacts.filter((contact) => contact.category_id === cat.id),
+        }));
+
+        setData(grouped);
+        setLoading(false);
+        return;
+      } catch (cause) {
+        lastError = cause;
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+        }
+      }
     }
+
+    console.error('Directory data load failed', lastError);
+    setError(true);
+    setLoading(false);
   }, []);
 
   useEffect(() => {

@@ -417,14 +417,12 @@ export function AdminPanel({ lang, onBack }: Props) {
               label={t(lang, 'name')}
               value={editingContact.name}
               onChange={(v) => setEditingContact({ ...editingContact, name: v })}
-              lang={lang}
               required
             />
             <LocalizedInput
               label={t(lang, 'description')}
               value={editingContact.description}
               onChange={(v) => setEditingContact({ ...editingContact, description: v })}
-              lang={lang}
               textarea
             />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -495,14 +493,12 @@ export function AdminPanel({ lang, onBack }: Props) {
               label={t(lang, 'name')}
               value={editingCategory.name}
               onChange={(v) => setEditingCategory({ ...editingCategory, name: v })}
-              lang={lang}
               required
             />
             <LocalizedInput
               label={t(lang, 'description')}
               value={editingCategory.description}
               onChange={(v) => setEditingCategory({ ...editingCategory, description: v })}
-              lang={lang}
               textarea
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -614,14 +610,12 @@ function LocalizedInput({
   label,
   value,
   onChange,
-  lang,
   textarea,
   required,
 }: {
   label: string;
   value: LocalizedText;
   onChange: (v: LocalizedText) => void;
-  lang: LangCode;
   textarea?: boolean;
   required?: boolean;
 }) {
